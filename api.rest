@@ -1,0 +1,29 @@
+### Check stock
+POST http://localhost:18888/api/stock
+Content-Type: application/json
+
+{
+  "product_name": "Resleting"
+}
+
+### Create quotation
+POST http://localhost:18888/api/quotation
+Content-Type: application/json
+
+{
+  "partner_id": 1,
+  "product_id": 9,
+  "quantity": 2,
+  "price_unit": 100
+}
+
+### Get order 
+GET http://localhost:18888/api/orders
+
+### Get order status
+GET http://localhost:18888/api/order_status?order_name=S00001
+Content-Type: application/json
+
+### get Prod
+
+GET http://localhost:18888/api/products
