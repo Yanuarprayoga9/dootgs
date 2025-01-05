@@ -5,25 +5,41 @@ Content-Type: application/json
 {
   "product_name": "Resleting"
 }
+### Create Quotation
+GET http://localhost:18888/api/quotations
 
-### Create quotation
+### Create Quotation
 POST http://localhost:18888/api/quotation
 Content-Type: application/json
 
 {
-  "partner_id": 1,
-  "product_id": 9,
-  "quantity": 2,
-  "price_unit": 100
+  "customer_id": 1,
+  "product_id": 2,
+  "quantity": 1,
+  "unit_price": 70000,
+  "pricelist_id": 1,
+  "payment_term_id": 2
 }
+
+
+
+
 
 ### Get order 
 GET http://localhost:18888/api/orders
 
 ### Get order status
-GET http://localhost:18888/api/order_status?order_name=S00001
+GET http://localhost:18888/api/order_status?order_name=S00009
 Content-Type: application/json
 
 ### get Prod
 
 GET http://localhost:18888/api/products
+####
+GET http://localhost:18888/api/user?phone=08822529227
+Content-Type: application/json
+
+####
+GET http://localhost:18888/api/users
+Content-Type: application/json
+

@@ -57,60 +57,46 @@ import json
 # 2. integrasikan menggunakan node js untuk terhubung ke telegram 
  
 class TelegramBotController(http.Controller):
-
     # Check Stock (POST)
-    @http.route('/api/stock', auth='none', type='http', methods=['POST'], csrf=False)
+    # Check Stock (POST)
+    @http.route('/api/stock', auth='public', type='http', methods=['POST'], csrf=False)
     def check_stock(self, **params):
         try:
             reqbody = json.loads(request.httprequest.data)
             product_name = reqbody.get('product_name')
 
             if not product_name:
-                return Response(json.dumps({"error": "Product name is required"}), content_type='application/json', status=400)
+                return Response(
+                    json.dumps({"error": "Product name is required"}),
+                    content_type='application/json',
+                    status=400
+                )
 
             product = request.env['product.product'].sudo().search([('name', '=', product_name)], limit=1)
 
             if not product:
-                return Response(json.dumps({"error": "Product not found"}), content_type='application/json', status=404)
+                return Response(
+                    json.dumps({"error": "Product not found"}),
+                    content_type='application/json',
+                    status=404
+                )
 
-            return Response(json.dumps({
-                'product_id': product.id,
-                'product_name': product.name,
-                'stock': product.qty_available
-            }), content_type='application/json', status=200)
+            # Serialize the product object
+            product_data = product.read(['id', 'display_name', 'qty_available', 'type', 'list_price'])[0]
+
+            return Response(
+                json.dumps(product_data),
+                content_type='application/json',
+                status=200
+            )
         except Exception as e:
-            return Response(json.dumps({"error": str(e)}), content_type='application/json', status=500)
+            return Response(
+                json.dumps({"error": str(e)}),
+                content_type='application/json',
+                status=500
+            )
 
-    # Create Quotation (POST)
-    @http.route('/api/quotation', auth='none', type='http', methods=['POST'], csrf=False)
-    def create_quotation(self, **params):
-        try:
-            reqbody = json.loads(request.httprequest.data)
-            partner_id = reqbody.get('partner_id')
-            product_id = reqbody.get('product_id')
-            quantity = reqbody.get('quantity')
-            price_unit = reqbody.get('price_unit')
-
-            if not (partner_id and product_id and quantity and price_unit):
-                return Response(json.dumps({"error": "All fields are required: partner_id, product_id, quantity, price_unit"}), content_type='application/json', status=400)
-
-            quotation = request.env['sale.order'].sudo().create({
-                'partner_id': partner_id,
-                'order_line': [(0, 0, {
-                    'product_id': product_id,
-                    'product_uom_qty': quantity,
-                    'price_unit': price_unit
-                })]
-            })
-
-            return Response(json.dumps({
-                'quotation_id': quotation.id,
-                'state': quotation.state,
-                'message': 'Quotation created successfully'
-            }), content_type='application/json', status=201)
-        except Exception as e:
-            return Response(json.dumps({"error": str(e)}), content_type='application/json', status=500)
-
+  
     # Get All Orders (GET)
     @http.route('/api/orders', auth='none', type='http', methods=['GET'], csrf=False)
     def get_all_orders(self, **kw):
@@ -194,36 +180,7 @@ class TelegramBotController(http.Controller):
     #         return Response(json.dumps({"error": str(e)}), content_type='application/json', status=500)
 
 
-    # Create Quotation (POST)
-    @http.route('/api/quotation', auth='none', type='http', methods=['POST'], csrf=False)
-    def create_quotation(self, **params):
-        try:
-            reqbody = json.loads(request.httprequest.data)
-            partner_id = reqbody.get('partner_id')
-            product_id = reqbody.get('product_id')
-            quantity = reqbody.get('quantity')
-            price_unit = reqbody.get('price_unit')
-
-            if not (partner_id and product_id and quantity and price_unit):
-                return Response(json.dumps({"error": "All fields are required: partner_id, product_id, quantity, price_unit"}), content_type='application/json', status=400)
-
-            quotation = request.env['sale.order'].sudo().create({
-                'partner_id': partner_id,
-                'order_line': [(0, 0, {
-                    'product_id': product_id,
-                    'product_uom_qty': quantity,
-                    'price_unit': price_unit
-                })]
-            })
-
-            return Response(json.dumps({
-                'quotation_id': quotation.id,
-                'state': quotation.state,
-                'message': 'Quotation created successfully'
-            }), content_type='application/json', status=201)
-        except Exception as e:
-            return Response(json.dumps({"error": str(e)}), content_type='application/json', status=500)
-
+   
     # Get All Orders (GET)
     @http.route('/api/orders', auth='none', type='http', methods=['GET'], csrf=False)
     def get_all_orders(self, **kw):
@@ -241,29 +198,7 @@ class TelegramBotController(http.Controller):
         except Exception as e:
             return Response(json.dumps({"error": str(e)}), content_type='application/json', status=500)
 
-    # Get Order Status (GET)
-    @http.route('/api/order_status', auth='none', type='http', methods=['GET'], csrf=False)
-    def get_order_status(self, **params):
-        try:
-            order_name = params.get('order_name')
-
-            if not order_name:
-                return Response(json.dumps({"error": "Order name is required"}), content_type='application/json', status=400)
-
-            order = request.env['sale.order'].sudo().search([('name', '=', order_name)], limit=1)
-
-            if not order:
-                return Response(json.dumps({"error": "Order not found"}), content_type='application/json', status=404)
-
-            return Response(json.dumps({
-                'order_id': order.id,
-                'order_name': order.name,
-                'state': order.state,
-                'delivery_status': order.picking_ids.mapped('state')
-            }), content_type='application/json', status=200)
-        except Exception as e:
-            return Response(json.dumps({"error": str(e)}), content_type='application/json', status=500)
-
+ 
  
     # Save Feedback (POST)
     @http.route('/api/feedback', auth='none', type='http', methods=['POST'], csrf=False)
@@ -293,13 +228,14 @@ class TelegramBotController(http.Controller):
             return Response(json.dumps({"error": str(e)}), content_type='application/json', status=500)
 
     # Get All Products (GET)
-    @http.route('/api/products', auth='none', type='http', methods=['GET'], csrf=False)
+    @http.route('/api/products', auth='public', type='http', methods=['GET'], csrf=False)
     def get_all_products(self, **kw):
         try:
             products = request.env['product.template'].sudo().search([])
             result = [{
                 'product_id': product.id,
                 'name': product.name,
+                'display_name': product.display_name,
                 'list_price': product.list_price,
                 'stock_available': product.qty_available,
                 'stock_reserved': product.virtual_available,
